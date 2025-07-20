@@ -17,34 +17,91 @@ export type Database = {
       clientes: {
         Row: {
           cnpj: string
+          contato_responsavel: string | null
           created_at: string
           email: string
+          endereco: string | null
           id: string
           nome: string
+          telefone: string | null
           updated_at: string
           user_id: string | null
         }
         Insert: {
           cnpj: string
+          contato_responsavel?: string | null
           created_at?: string
           email: string
+          endereco?: string | null
           id?: string
           nome: string
+          telefone?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           cnpj?: string
+          contato_responsavel?: string | null
           created_at?: string
           email?: string
+          endereco?: string | null
           id?: string
           nome?: string
+          telefone?: string | null
           updated_at?: string
           user_id?: string | null
         }
         Relationships: []
       }
       obrigacoes: {
+        Row: {
+          cliente_id: string
+          created_at: string
+          data_conclusao: string | null
+          data_vencimento: string
+          descricao: string | null
+          frequencia: Database["public"]["Enums"]["obrigacao_frequencia"]
+          id: string
+          observacoes: string | null
+          prioridade: number | null
+          status: Database["public"]["Enums"]["obrigacao_status"]
+          titulo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cliente_id: string
+          created_at?: string
+          data_conclusao?: string | null
+          data_vencimento: string
+          descricao?: string | null
+          frequencia?: Database["public"]["Enums"]["obrigacao_frequencia"]
+          id?: string
+          observacoes?: string | null
+          prioridade?: number | null
+          status?: Database["public"]["Enums"]["obrigacao_status"]
+          titulo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cliente_id?: string
+          created_at?: string
+          data_conclusao?: string | null
+          data_vencimento?: string
+          descricao?: string | null
+          frequencia?: Database["public"]["Enums"]["obrigacao_frequencia"]
+          id?: string
+          observacoes?: string | null
+          prioridade?: number | null
+          status?: Database["public"]["Enums"]["obrigacao_status"]
+          titulo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      obrigacoes_backup: {
         Row: {
           cliente_id: string
           created_at: string
@@ -123,7 +180,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      obrigacao_frequencia:
+        | "unica"
+        | "mensal"
+        | "bimestral"
+        | "trimestral"
+        | "semestral"
+        | "anual"
+      obrigacao_status: "pendente" | "concluida" | "atrasada"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -250,6 +314,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      obrigacao_frequencia: [
+        "unica",
+        "mensal",
+        "bimestral",
+        "trimestral",
+        "semestral",
+        "anual",
+      ],
+      obrigacao_status: ["pendente", "concluida", "atrasada"],
+    },
   },
 } as const
