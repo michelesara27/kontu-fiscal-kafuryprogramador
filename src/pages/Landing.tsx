@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Building2, ArrowRight, Check } from 'lucide-react'
 
-export default function Landing() {
+export function Landing() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-primary-soft/10">
       {/* Hero Section */}

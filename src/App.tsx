@@ -1,19 +1,20 @@
-import { Routes, Route } from 'react-router-dom'
-import Landing from '@/pages/Landing'
-import Auth from '@/pages/Auth'
-import Index from '@/pages/Index'
-import { AuthProvider } from '@/hooks/useAuth'
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from '@/hooks/useAuth';
+import { DatabaseProvider } from '@/providers/DatabaseProvider';
+import AppRoutes from '@/routes/AppRoutes';
+import { Toaster } from '@/components/ui/toaster';
 
 function App() {
   return (
-    <AuthProvider>
-      <Routes>
-        <Route path="/" element={<Landing />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/app/*" element={<Index />} />
-      </Routes>
-    </AuthProvider>
-  )
+    <BrowserRouter>
+      <AuthProvider>
+        <DatabaseProvider>
+          <AppRoutes />
+          <Toaster />
+        </DatabaseProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
