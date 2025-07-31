@@ -1,70 +1,89 @@
-import { ReactNode } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { LogOut, User, Building2 } from 'lucide-react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import React from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { Button } from './ui/Button';
+import { 
+  User, 
+  Settings, 
+  FileText, 
+  Users, 
+  Bell, 
+  Home,
+  LogOut
+} from 'lucide-react';
 
 interface LayoutProps {
-  children: ReactNode;
-  title?: string;
+  children: React.ReactNode;
 }
 
-export function Layout({ children, title = "Dashboard" }: LayoutProps) {
-  const { user, signOut } = useAuth();
+export const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const { user, logout } = useAuth();
+
+  const menuItems = [
+    { icon: Home, label: 'Dashboard', href: '#' },
+    { icon: FileText, label: 'Obrigações', href: '#' },
+    { icon: Users, label: 'Clientes', href: '#' },
+    { icon: Bell, label: 'Lembretes', href: '#' },
+    ...(user?.role === 'admin' ? [
+      { icon: User, label: 'Equipe', href: '#' },
+      { icon: Settings, label: 'Configurações', href: '#' }
+    ] : [])
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-primary-soft/20">
-      <header className="bg-card/95 backdrop-blur-sm border-b border-border/50 sticky top-0 z-50 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Building2 className="h-8 w-8 text-primary" />
-                <div>
-                  <h1 className="text-xl font-bold text-foreground">Kontu</h1>
-                  <p className="text-xs text-muted-foreground">Gestão Fiscal Inteligente</p>
-                </div>
-              </div>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold text-blue-600">Kontu</h1>
+            <span className="text-sm text-gray-500">
+              {user?.company.fantasyName}
+            </span>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <User className="w-5 h-5 text-gray-400" />
+              <span className="text-sm text-gray-700">{user?.email}</span>
+              <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                {user?.role === 'admin' ? 'Admin' : 'Colaborador'}
+              </span>
             </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    <User className="h-4 w-4" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-foreground">
-                    {user?.user_metadata?.nome || user?.email?.split('@')[0]}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Contador</p>
-                </div>
-              </div>
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={signOut}
-                className="gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                <span className="hidden md:inline">Sair</span>
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={logout}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="w-4 h-4" />
+              Sair
+            </Button>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold text-foreground">{title}</h2>
-          <p className="text-muted-foreground mt-2">
-            Mantenha seus clientes em dia com suas obrigações fiscais
-          </p>
-        </div>
-        {children}
-      </main>
+      <div className="flex">
+        {/* Sidebar */}
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-screen p-6">
+          <nav className="space-y-2">
+            {menuItems.map((item, index) => (
+              <a
+                key={index}
+                href={item.href}
+                className="flex items-center space-x-3 px-3 py-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+              >
+                <item.icon className="w-5 h-5" />
+                <span>{item.label}</span>
+              </a>
+            ))}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1 p-6">
+          {children}
+        </main>
+      </div>
     </div>
   );
-}
+};
