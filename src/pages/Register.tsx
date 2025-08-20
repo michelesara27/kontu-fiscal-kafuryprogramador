@@ -62,10 +62,12 @@ export const Register: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+		console.log('enviando formulario ...');
     
     if (!validateForm()) return;
     
     setLoading(true);
+		console.log('setLoading true ...');
     try {
       const success = await register({
         fantasyName: formData.fantasyName,
@@ -84,9 +86,11 @@ export const Register: React.FC = () => {
       
       if (!success) {
         setErrors({ general: 'Erro ao criar conta. Tente novamente.' });
+				console.log('erro ao criar conta ...');
       }
     } catch (error) {
       setErrors({ general: 'Erro ao criar conta. Tente novamente.' });
+			console.log('erro ao criar conta ...');
     } finally {
       setLoading(false);
     }
