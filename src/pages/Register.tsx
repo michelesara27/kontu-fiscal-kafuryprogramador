@@ -1,285 +1,187 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+// src/pages/Register.tsx
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { companySchema, CompanyFormValues } from '../utils/validation';
+import { masks } from '../utils/masks';
+import { estadosBrasil } from '../utils/constants';
+import { useCepApi } from '../hooks/useCepApi';
+import { useCompanyMutation } from '../hooks/useCompanyMutation';
+import { Input } from '../components/ui/Form/Input';
+import { Select } from '../components/ui/Form/Select';
 import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card } from '../components/ui/Card';
 
-export const Register: React.FC = () => {
-  const { register } = useAuth();
-  const [formData, setFormData] = useState({
-    fantasyName: '',
-    email: '',
-    phone: '',
-    cnpj: '',
-    street: '',
-    neighborhood: '',
-    zipCode: '',
-    city: '',
-    state: '',
-    password: '',
-    confirmPassword: ''
+export const Register = () => {
+  const { 
+    register, 
+    handleSubmit, 
+    formState, 
+    setValue, 
+    watch, 
+    setError,
+    reset
+  } = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
+    defaultValues: {
+      plan: 'free'
+    }
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(false);
+  
+  const { fetchAddress, loading: cepLoading } = useCepApi();
+  const { mutate, isLoading } = useCompanyMutation();
+  const cepValue = watch('address_zip');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+  const handleCepBlur = async () => {
+    if (!cepValue) return;
     
-    if (!formData.fantasyName) newErrors.fantasyName = 'Nome Fantasia é obrigatório';
-    if (!formData.email) {
-      newErrors.email = 'E-mail é obrigatório';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'E-mail inválido';
-    }
-    if (!formData.phone) newErrors.phone = 'Telefone é obrigatório';
-    if (!formData.cnpj) newErrors.cnpj = 'CNPJ é obrigatório';
-    if (!formData.street) newErrors.street = 'Logradouro é obrigatório';
-    if (!formData.neighborhood) newErrors.neighborhood = 'Bairro é obrigatório';
-    if (!formData.zipCode) newErrors.zipCode = 'CEP é obrigatório';
-    if (!formData.city) newErrors.city = 'Cidade é obrigatória';
-    if (!formData.state) newErrors.state = 'Estado é obrigatório';
-    if (!formData.password) {
-      newErrors.password = 'Senha é obrigatória';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Senha deve ter pelo menos 6 caracteres';
-    }
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Senhas não coincidem';
-    }
+    const cleanCep = cepValue.replace(/\D/g, '');
+    if (cleanCep.length !== 8) return;
     
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-		console.log('enviando formulario ...');
-    
-    if (!validateForm()) return;
-    
-    setLoading(true);
-		console.log('setLoading true ...');
-    try {
-      const success = await register({
-        fantasyName: formData.fantasyName,
-        email: formData.email,
-        phone: formData.phone,
-        cnpj: formData.cnpj,
-        address: {
-          street: formData.street,
-          neighborhood: formData.neighborhood,
-          zipCode: formData.zipCode,
-          city: formData.city,
-          state: formData.state
-        },
-        password: formData.password
+    const address = await fetchAddress(cleanCep);
+    if (address) {
+      setValue('address_street', address.street);
+      setValue('address_neighborhood', address.neighborhood);
+      setValue('address_city', address.city);
+      setValue('address_state', address.state);
+    } else {
+      setError('address_zip', { 
+        message: 'CEP não encontrado' 
       });
-      
-      if (!success) {
-        setErrors({ general: 'Erro ao criar conta. Tente novamente.' });
-				console.log('erro ao criar conta ...');
-      }
+    }
+  };
+
+  const onSubmit = async (data: CompanyFormValues) => {
+    try {
+      await mutate(data);
+      // Limpar formulário após sucesso
+      reset();
     } catch (error) {
-      setErrors({ general: 'Erro ao criar conta. Tente novamente.' });
-			console.log('erro ao criar conta ...');
-    } finally {
-      setLoading(false);
+      // Erro já é tratado no hook
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-blue-600 mb-2">Kontu</h1>
-          <p className="text-gray-600">Crie sua conta e cadastre seu escritório</p>
-        </div>
+        <div className="bg-white shadow-xl rounded-lg p-8">
+          <div className="text-center mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Cadastro de Empresa
+            </h1>
+            <p className="text-gray-600">
+              Preencha os dados da sua empresa para começar
+            </p>
+          </div>
 
-        <Card>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <h2 className="text-2xl font-semibold text-gray-900 text-center mb-6">
-              Cadastrar Empresa
-            </h2>
-
-            {errors.general && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {errors.general}
-              </div>
-            )}
-
-            {/* Dados da Empresa */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Dados Básicos */}
+            <div className="border-b border-gray-200 pb-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
                 Dados da Empresa
-              </h3>
+              </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Input
-                  label="Nome Fantasia"
-                  name="fantasyName"
-                  value={formData.fantasyName}
-                  onChange={handleChange}
-                  error={errors.fantasyName}
-                  required
-                  placeholder="Escritório Contábil XYZ"
+                  label="Nome da Empresa *"
+                  {...register('name')}
+                  error={formState.errors.name?.message}
+                  placeholder="Digite o nome da empresa"
                 />
                 
                 <Input
-                  label="CNPJ"
-                  name="cnpj"
-                  value={formData.cnpj}
-                  onChange={handleChange}
-                  error={errors.cnpj}
-                  required
-                  placeholder="12.345.678/0001-90"
+                  label="Email *"
+                  type="email"
+                  {...register('email')}
+                  error={formState.errors.email?.message}
+                  placeholder="email@empresa.com"
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <Input
-                  label="E-mail"
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  error={errors.email}
-                  required
-                  placeholder="contato@escritorio.com"
+                  label="Telefone *"
+                  {...register('phone')}
+                  onChange={(e) => {
+                    setValue('phone', masks.phone(e.target.value));
+                  }}
+                  error={formState.errors.phone?.message}
+                  placeholder="(11) 99999-9999"
                 />
                 
                 <Input
-                  label="Telefone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  error={errors.phone}
-                  required
-                  placeholder="(11) 99999-9999"
+                  label="CNPJ *"
+                  {...register('cnpj')}
+                  onChange={(e) => {
+                    setValue('cnpj', masks.cnpj(e.target.value));
+                  }}
+                  error={formState.errors.cnpj?.message}
+                  placeholder="00.000.000/0000-00"
                 />
               </div>
             </div>
 
             {/* Endereço */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
+            <div className="border-b border-gray-200 pb-6">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
                 Endereço
-              </h3>
+              </h2>
               
-              <Input
-                label="Logradouro"
-                name="street"
-                value={formData.street}
-                onChange={handleChange}
-                error={errors.street}
-                required
-                placeholder="Rua das Flores, 123"
-              />
-
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Input
-                  label="Bairro"
-                  name="neighborhood"
-                  value={formData.neighborhood}
-                  onChange={handleChange}
-                  error={errors.neighborhood}
-                  required
-                  placeholder="Centro"
+                  label="CEP *"
+                  {...register('address_zip')}
+                  onChange={(e) => {
+                    setValue('address_zip', masks.cep(e.target.value));
+                  }}
+                  onBlur={handleCepBlur}
+                  error={formState.errors.address_zip?.message}
+                  loading={cepLoading}
+                  placeholder="00000-000"
                 />
                 
-                <Input
-                  label="CEP"
-                  name="zipCode"
-                  value={formData.zipCode}
-                  onChange={handleChange}
-                  error={errors.zipCode}
-                  required
-                  placeholder="12345-678"
-                />
-                
-                <Input
-                  label="Estado"
-                  name="state"
-                  value={formData.state}
-                  onChange={handleChange}
-                  error={errors.state}
-                  required
-                  placeholder="SP"
+                <Select
+                  label="Estado *"
+                  {...register('address_state')}
+                  options={estadosBrasil.map(uf => ({ value: uf, label: uf }))}
+                  error={formState.errors.address_state?.message}
+                  placeholder="Selecione o estado"
                 />
               </div>
 
               <Input
-                label="Cidade"
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                error={errors.city}
-                required
-                placeholder="São Paulo"
+                label="Logradouro *"
+                {...register('address_street')}
+                error={formState.errors.address_street?.message}
+                placeholder="Rua, Avenida, etc."
+                className="mt-4"
               />
-            </div>
 
-            {/* Senha */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">
-                Acesso
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <Input
-                  label="Senha"
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  error={errors.password}
-                  required
-                  placeholder="••••••••"
+                  label="Bairro *"
+                  {...register('address_neighborhood')}
+                  error={formState.errors.address_neighborhood?.message}
+                  placeholder="Nome do bairro"
                 />
                 
                 <Input
-                  label="Confirmar Senha"
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  error={errors.confirmPassword}
-                  required
-                  placeholder="••••••••"
+                  label="Cidade *"
+                  {...register('address_city')}
+                  error={formState.errors.address_city?.message}
+                  placeholder="Nome da cidade"
                 />
               </div>
             </div>
 
             <Button
               type="submit"
-              loading={loading}
-              className="w-full"
-              size="lg"
+              loading={isLoading}
+              disabled={!formState.isValid || isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium"
             >
-              Criar Conta e Empresa
+              {isLoading ? 'Cadastrando...' : 'Cadastrar Empresa'}
             </Button>
-
-            <div className="text-center">
-              <p className="text-gray-600 text-sm">
-                Já tem uma conta?{' '}
-                <Link
-                  to="/login"
-                  className="text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Fazer login
-                </Link>
-              </p>
-            </div>
           </form>
-        </Card>
+        </div>
       </div>
     </div>
   );
