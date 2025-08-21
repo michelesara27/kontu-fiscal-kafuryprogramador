@@ -1,4 +1,4 @@
- import { useState } from 'react';
+import { useState } from 'react';
 import { ViaCepResponse } from '../types/company';
 
 export const useCepApi = () => {

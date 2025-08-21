@@ -1,4 +1,5 @@
- import { z } from 'zod';
+import { z } from 'zod';
+import { estadosBrasil } from './constants';
 
 export const companySchema = z.object({
   name: z.string()

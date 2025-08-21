@@ -1,4 +1,4 @@
- export const masks = {
+export const masks = {
   cnpj: (value: string) => {
     return value
       .replace(/\D/g, '')

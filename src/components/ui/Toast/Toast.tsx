@@ -1,4 +1,4 @@
- // src/components/ui/Toast/Toast.tsx
+// src/components/ui/Toast/Toast.tsx
 import { ToastType } from '../../../hooks/useToast';
 import { CheckCircle, XCircle, AlertCircle, Info } from 'lucide-react';
 

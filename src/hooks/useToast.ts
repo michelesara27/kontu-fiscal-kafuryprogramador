@@ -1,4 +1,4 @@
- // src/hooks/useToast.ts
+// src/hooks/useToast.ts
 import { useState, useCallback } from 'react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
