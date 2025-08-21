@@ -8,7 +8,8 @@ import { useCepApi } from '../hooks/useCepApi';
 import { useCompanyMutation } from '../hooks/useCompanyMutation';
 import { Input } from '../components/ui/Form/Input';
 import { Select } from '../components/ui/Form/Select';
-import { Button } from '../components/ui/Button';
+import { Button } from '../components/ui/Form/Button';
+import { useEffect } from 'react';
 
 export const Register = () => {
   const { 
@@ -18,19 +19,31 @@ export const Register = () => {
     setValue, 
     watch, 
     setError,
-    reset
+    reset,
+    trigger
   } = useForm<CompanyFormValues>({
     resolver: zodResolver(companySchema),
     defaultValues: {
       plan: 'free'
-    }
+    },
+    mode: 'onChange' // Valida em tempo real
   });
   
   const { fetchAddress, loading: cepLoading } = useCepApi();
   const { mutate, isLoading } = useCompanyMutation();
-  const cepValue = watch('address_zip');
+  
+  // Watch all fields for debugging
+  const formValues = watch();
+  
+  // Debug: log form state
+  useEffect(() => {
+    console.log('Form isValid:', formState.isValid);
+    console.log('Form errors:', formState.errors);
+    console.log('Form values:', formValues);
+  }, [formState.isValid, formState.errors, formValues]);
 
   const handleCepBlur = async () => {
+    const cepValue = formValues.address_zip;
     if (!cepValue) return;
     
     const cleanCep = cepValue.replace(/\D/g, '');
@@ -38,30 +51,31 @@ export const Register = () => {
     
     const address = await fetchAddress(cleanCep);
     if (address) {
-      setValue('address_street', address.street);
-			console.log('endereço foi informado ...');
-      setValue('address_neighborhood', address.neighborhood);
-			console.log('outro endereço informado ...');
-      setValue('address_city', address.city);
-			console.log('cidade foi informada ...');
-      setValue('address_state', address.state);
-			console.log('UF informada ...');
+      setValue('address_street', address.street, { shouldValidate: true });
+      setValue('address_neighborhood', address.neighborhood, { shouldValidate: true });
+      setValue('address_city', address.city, { shouldValidate: true });
+      setValue('address_state', address.state, { shouldValidate: true });
     } else {
       setError('address_zip', { 
         message: 'CEP não encontrado' 
-      });
+      }, { shouldFocus: true });
     }
   };
 
   const onSubmit = async (data: CompanyFormValues) => {
     try {
       await mutate(data);
-      // Limpar formulário após sucesso
       reset();
     } catch (error) {
       // Erro já é tratado no hook
     }
   };
+
+  // Função para forçar validação quando campos mudam
+  useEffect(() => {
+    const subscription = watch(() => trigger());
+    return () => subscription.unsubscribe();
+  }, [watch, trigger]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -73,6 +87,14 @@ export const Register = () => {
             </h1>
             <p className="text-gray-600">
               Preencha os dados da sua empresa para começar
+            </p>
+          </div>
+
+          {/* Debug info */}
+          <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>Debug:</strong> isValid: {formState.isValid ? 'true' : 'false'} | 
+              Errors: {Object.keys(formState.errors).length}
             </p>
           </div>
 
@@ -89,6 +111,9 @@ export const Register = () => {
                   {...register('name')}
                   error={formState.errors.name?.message}
                   placeholder="Digite o nome da empresa"
+                  onChange={(e) => {
+                    setValue('name', e.target.value, { shouldValidate: true });
+                  }}
                 />
                 
                 <Input
@@ -97,6 +122,9 @@ export const Register = () => {
                   {...register('email')}
                   error={formState.errors.email?.message}
                   placeholder="email@empresa.com"
+                  onChange={(e) => {
+                    setValue('email', e.target.value, { shouldValidate: true });
+                  }}
                 />
               </div>
 
@@ -105,7 +133,8 @@ export const Register = () => {
                   label="Telefone *"
                   {...register('phone')}
                   onChange={(e) => {
-                    setValue('phone', masks.phone(e.target.value));
+                    const formatted = masks.phone(e.target.value);
+                    setValue('phone', formatted, { shouldValidate: true });
                   }}
                   error={formState.errors.phone?.message}
                   placeholder="(11) 99999-9999"
@@ -115,7 +144,8 @@ export const Register = () => {
                   label="CNPJ *"
                   {...register('cnpj')}
                   onChange={(e) => {
-                    setValue('cnpj', masks.cnpj(e.target.value));
+                    const formatted = masks.cnpj(e.target.value);
+                    setValue('cnpj', formatted, { shouldValidate: true });
                   }}
                   error={formState.errors.cnpj?.message}
                   placeholder="00.000.000/0000-00"
@@ -134,7 +164,8 @@ export const Register = () => {
                   label="CEP *"
                   {...register('address_zip')}
                   onChange={(e) => {
-                    setValue('address_zip', masks.cep(e.target.value));
+                    const formatted = masks.cep(e.target.value);
+                    setValue('address_zip', formatted, { shouldValidate: true });
                   }}
                   onBlur={handleCepBlur}
                   error={formState.errors.address_zip?.message}
@@ -148,6 +179,9 @@ export const Register = () => {
                   options={estadosBrasil.map(uf => ({ value: uf, label: uf }))}
                   error={formState.errors.address_state?.message}
                   placeholder="Selecione o estado"
+                  onChange={(e) => {
+                    setValue('address_state', e.target.value, { shouldValidate: true });
+                  }}
                 />
               </div>
 
@@ -157,6 +191,9 @@ export const Register = () => {
                 error={formState.errors.address_street?.message}
                 placeholder="Rua, Avenida, etc."
                 className="mt-4"
+                onChange={(e) => {
+                  setValue('address_street', e.target.value, { shouldValidate: true });
+                }}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
@@ -165,6 +202,9 @@ export const Register = () => {
                   {...register('address_neighborhood')}
                   error={formState.errors.address_neighborhood?.message}
                   placeholder="Nome do bairro"
+                  onChange={(e) => {
+                    setValue('address_neighborhood', e.target.value, { shouldValidate: true });
+                  }}
                 />
                 
                 <Input
@@ -172,18 +212,44 @@ export const Register = () => {
                   {...register('address_city')}
                   error={formState.errors.address_city?.message}
                   placeholder="Nome da cidade"
+                  onChange={(e) => {
+                    setValue('address_city', e.target.value, { shouldValidate: true });
+                  }}
                 />
               </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <p className="text-sm text-green-800">
+                <strong>Dica:</strong> Preencha todos os campos obrigatórios (*) para habilitar o botão.
+                {!formState.isValid && ' Verifique se todos os campos estão preenchidos corretamente.'}
+              </p>
             </div>
 
             <Button
               type="submit"
               loading={isLoading}
               disabled={!formState.isValid || isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium disabled:bg-gray-400 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Cadastrando...' : 'Cadastrar Empresa'}
             </Button>
+
+            {/* Mostrar erros específicos */}
+            {Object.keys(formState.errors).length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-red-800 mb-2">
+                  Corrija os seguintes erros:
+                </h3>
+                <ul className="text-sm text-red-700 list-disc list-inside">
+                  {Object.entries(formState.errors).map(([field, error]) => (
+                    <li key={field}>
+                      {field}: {error?.message}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </form>
         </div>
       </div>
