@@ -39,9 +39,13 @@ export const Register = () => {
     const address = await fetchAddress(cleanCep);
     if (address) {
       setValue('address_street', address.street);
+			console.log('endereço foi informado ...');
       setValue('address_neighborhood', address.neighborhood);
+			console.log('outro endereço informado ...');
       setValue('address_city', address.city);
+			console.log('cidade foi informada ...');
       setValue('address_state', address.state);
+			console.log('UF informada ...');
     } else {
       setError('address_zip', { 
         message: 'CEP não encontrado' 
