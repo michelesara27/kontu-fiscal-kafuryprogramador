@@ -1,5 +1,5 @@
 // src/pages/Register.tsx
-import { useForm, useController, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { companySchema, CompanyFormValues } from '../utils/validation';
 import { masks } from '../utils/masks';
@@ -11,24 +11,23 @@ import { Select } from '../components/ui/Form/Select';
 import { Button } from '../components/ui/Form/Button';
 import { useEffect } from 'react';
 
-import { TestForm } from '../components/TestForm';
-
-const { control, handleSubmit, formState, watch, setValue, trigger } = useForm<CompanyFormValues>({
-  resolver: zodResolver(companySchema),
-  mode: 'onChange',
-  defaultValues: {
-    plan: 'free',
-    name: '',
-    email: '',
-    phone: '',
-    cnpj: '',
-    address_street: '',
-    address_neighborhood: '',
-    address_zip: '',
-    address_city: '',
-    address_state: ''
-  }
-});
+export const Register = () => {
+  const { 
+    register, 
+    handleSubmit, 
+    formState, 
+    setValue, 
+    watch, 
+    setError,
+    reset,
+    trigger
+  } = useForm<CompanyFormValues>({
+    resolver: zodResolver(companySchema),
+    defaultValues: {
+      plan: 'free'
+    },
+    mode: 'onChange' // Valida em tempo real
+  });
   
   const { fetchAddress, loading: cepLoading } = useCepApi();
   const { mutate, isLoading } = useCompanyMutation();
@@ -76,25 +75,6 @@ const { control, handleSubmit, formState, watch, setValue, trigger } = useForm<C
       }, { shouldFocus: true });
     }
   };
-
-	// Substitua as funções de máscara por estas versões corrigidas
-	const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-	  const rawValue = e.target.value.replace(/\D/g, '');
-	  const formatted = masks.phone(rawValue);
-	  setValue('phone', formatted, { shouldValidate: true });
-	};
-	
-	const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-	  const rawValue = e.target.value.replace(/\D/g, '');
-	  const formatted = masks.cnpj(rawValue);
-	  setValue('cnpj', formatted, { shouldValidate: true });
-	};
-	
-	const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-	  const rawValue = e.target.value.replace(/\D/g, '');
-	  const formatted = masks.cep(rawValue);
-	  setValue('address_zip', formatted, { shouldValidate: true });
-	};	
 
   const onSubmit = async (data: CompanyFormValues) => {
     try {
@@ -163,41 +143,29 @@ const { control, handleSubmit, formState, watch, setValue, trigger } = useForm<C
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-							<Controller
-							  name="phone"
-							  control={control}
-							  render={({ field, fieldState }) => (
-							    <Input
-							      label="Telefone *"
-							      value={field.value}
-							      onChange={(e) => {
-							        const rawValue = e.target.value.replace(/\D/g, '');
-							        const formatted = masks.phone(rawValue);
-							        field.onChange(formatted);
-							      }}
-							      error={fieldState.error?.message}
-							      placeholder="(11) 99999-9999"
-							    />
-							  )}
-							/>
+                <Input
+                  label="Telefone *"
+                  {...register('phone')}
+                  onChange={(e) => {
+                    const formatted = masks.phone(e.target.value);
+                    setValue('phone', formatted, { shouldValidate: true });
+                  }}
+                  error={formState.errors.phone?.message}
+                  placeholder="(11) 99999-9999"
+                />
                 
-							<Controller
-							  name="cnpj"
-							  control={control}
-							  render={({ field, fieldState }) => (
-							    <Input
-							      label="CNPJ *"
-							      value={field.value}
-							      onChange={(e) => {
-							        const rawValue = e.target.value.replace(/\D/g, '');
-							        const formatted = masks.cnpj(rawValue);
-							        field.onChange(formatted);
-							      }}
-							      error={fieldState.error?.message}
-							      placeholder="00.000.000/0000-00"
-							    />
-							  )}
-							/>
+                <Input
+                  label="CNPJ *"
+                  {...register('cnpj')}
+                  onChange={(e) => {
+                    const formatted = masks.cnpj(e.target.value);
+                    setValue('cnpj', formatted, { shouldValidate: true });
+                  }}
+                  error={formState.errors.cnpj?.message}
+                  placeholder="00.000.000/0000-00"
+                />
+              </div>
+            </div>
 
             {/* Endereço */}
             <div className="border-b border-gray-200 pb-6">
@@ -206,15 +174,18 @@ const { control, handleSubmit, formState, watch, setValue, trigger } = useForm<C
               </h2>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								<Input
-								  label="CEP *"
-								  value={formValues.address_zip || ''}
-								  onChange={handleCepChange}
-								  onBlur={handleCepBlur}
-								  error={formState.errors.address_zip?.message}
-								  loading={cepLoading}
-								  placeholder="00000-000"
-								/>
+                <Input
+                  label="CEP *"
+                  {...register('address_zip')}
+                  onChange={(e) => {
+                    const formatted = masks.cep(e.target.value);
+                    setValue('address_zip', formatted, { shouldValidate: true });
+                  }}
+                  onBlur={handleCepBlur}
+                  error={formState.errors.address_zip?.message}
+                  loading={cepLoading}
+                  placeholder="00000-000"
+                />
                 
                 <Select
                   label="Estado *"
