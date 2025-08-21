@@ -1,6 +1,6 @@
  // src/hooks/useCompanyMutation.ts
 import { useState } from 'react';
-import { companyAPI } from '../services/companyApi';
+import { companyAPI } from '../services/companiesService';
 import { CompanyFormData } from '../types/company';
 import { useToast } from './useToast';
 
