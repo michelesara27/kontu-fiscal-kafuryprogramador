@@ -297,6 +297,5 @@ const { control, handleSubmit, formState, watch, setValue, trigger } = useForm<C
         </div>
       </div>
     </div>
-		<TestForm />
   );
 };
