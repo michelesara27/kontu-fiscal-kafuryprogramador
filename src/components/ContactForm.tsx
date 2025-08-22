@@ -22,7 +22,7 @@ export const ContactForm = () => {
     e.preventDefault();
     
     try {
-      const response = await fetch('SEU_WEBHOOK_URL_AQUI', {
+      const response = await fetch('https://eo8dzc8medtbpo4.m.pipedream.net', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
