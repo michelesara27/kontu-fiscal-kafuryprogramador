@@ -7,12 +7,14 @@ import { Dashboard } from './pages/Dashboard';
 import { CompanyRegistration } from './pages/CompanyRegistration';
 import { Clients } from './pages/Clients';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { Landing } from './pages/Landing';
 
 function App() {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/company-registration" element={<CompanyRegistration />} />
@@ -32,7 +34,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-          <Route path="/" element={<Login />} />
         </Routes>
       </Router>
     </AuthProvider>

@@ -18,18 +18,26 @@ export const ContactForm = () => {
     resolver: zodResolver(contactSchema)
   });
 
-  const onSubmit = async (data: ContactFormData) => {
-    setIsLoading(true);
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    
     try {
-      // Simular envio do formulário
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Dados do formulário:', data);
-      setSubmitSuccess(true);
-      reset();
+      const response = await fetch('SEU_WEBHOOK_URL_AQUI', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        alert('Mensagem enviada com sucesso!');
+        setFormData({ name: '', email: '', message: '' });
+      } else {
+        alert('Erro ao enviar mensagem.');
+      }
     } catch (error) {
-      console.error('Erro ao enviar formulário:', error);
-    } finally {
-      setIsLoading(false);
+      alert('Erro ao conectar com o servidor.');
     }
   };
 
@@ -65,6 +73,7 @@ export const ContactForm = () => {
         <Input
           label="Nome"
           type="text"
+					name="name"
           placeholder="Seu nome completo"
           error={errors.name?.message}
           {...register('name')}
@@ -73,6 +82,7 @@ export const ContactForm = () => {
         <Input
           label="E-mail"
           type="email"
+					name="email"
           placeholder="seu@email.com"
           error={errors.email?.message}
           {...register('email')}
@@ -88,6 +98,7 @@ export const ContactForm = () => {
               min-h-[120px] resize-vertical
               ${errors.message ? 'border-red-300' : 'border-gray-300'}
             `}
+						name="message"
             placeholder="Digite sua mensagem aqui..."
             {...register('message')}
           />
