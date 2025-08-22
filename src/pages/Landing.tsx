@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { X, User, Mail, Lock, ArrowRight } from 'lucide-react';
+import { X, User, Mail, Lock, ArrowRight, MessageCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Login } from './Login';
 import { Register } from './Register';
+import { ContactForm } from '../components/ContactForm';
 
 const features = [
   {
@@ -21,6 +22,11 @@ const features = [
     title: 'Colaboração Eficiente',
     description: 'Compartilhamento seguro com sua equipe',
     icon: '👥'
+  },
+  {
+    title: 'Suporte Personalizado',
+    description: 'Atendimento especializado para sua empresa',
+    icon: '💬'
   }
 ];
 
@@ -82,14 +88,37 @@ export const Landing = () => {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-12">
             Como o Kontu ajuda sua empresa
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} padding="lg" className="hover:shadow-md transition-shadow">
+              <Card key={index} padding="lg" className="hover:shadow-md transition-shadow text-center">
                 <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
                 <p className="text-gray-600">{feature.description}</p>
               </Card>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section */}
+      <section className="py-16 bg-gray-50">
+        <div className="container mx-auto px-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <MessageCircle className="w-8 h-8 text-blue-600" />
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-4">
+                Fale Conosco
+              </h2>
+              <p className="text-xl text-gray-600">
+                Tem dúvidas ou precisa de mais informações? Entre em contato conosco.
+              </p>
+            </div>
+            
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <ContactForm />
+            </div>
           </div>
         </div>
       </section>
