@@ -36,27 +36,13 @@ export const Register = () => {
   const formValues = watch();
   
   // Debug: log form state
-		useEffect(() => {
-		  console.log('=== DEBUG FORM STATE ===');
-		  console.log('isValid:', formState.isValid);
-		  console.log('isDirty:', formState.isDirty);
-		  console.log('errors:', formState.errors);
-		  
-		  // Log cada campo individualmente
-		  const fields = [
-		    'name', 'email', 'phone', 'cnpj', 
-		    'address_street', 'address_neighborhood', 
-		    'address_zip', 'address_city', 'address_state'
-		  ];
-		  
-		  fields.forEach(field => {
-		    const value = formValues[field as keyof CompanyFormValues];
-		    const error = formState.errors[field as keyof CompanyFormValues];
-		    console.log(`${field}:`, value, '| error:', error?.message);
-		  });
-		}, [formState, formValues]);
+  useEffect(() => {
+    console.log('Form isValid:', formState.isValid);
+    console.log('Form errors:', formState.errors);
+    console.log('Form values:', formValues);
+  }, [formState.isValid, formState.errors, formValues]);
 
-    const handleCepBlur = async () => {
+  const handleCepBlur = async () => {
     const cepValue = formValues.address_zip;
     if (!cepValue) return;
     
