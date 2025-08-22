@@ -18,8 +18,8 @@ export const ContactForm = () => {
     resolver: zodResolver(contactSchema)
   });
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data: ContactFormData) => {
+    setIsLoading(true);
     
     try {
       const response = await fetch('https://eo8dzc8medtbpo4.m.pipedream.net', {
@@ -27,17 +27,19 @@ export const ContactForm = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(data),
       });
 
       if (response.ok) {
-        alert('Mensagem enviada com sucesso!');
-        setFormData({ name: '', email: '', message: '' });
+        setSubmitSuccess(true);
+        reset();
       } else {
-        alert('Erro ao enviar mensagem.');
+        alert('Erro ao enviar mensagem. Tente novamente.');
       }
     } catch (error) {
-      alert('Erro ao conectar com o servidor.');
+      alert('Erro ao conectar com o servidor. Verifique sua conexão.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,7 +75,6 @@ export const ContactForm = () => {
         <Input
           label="Nome"
           type="text"
-					name="name"
           placeholder="Seu nome completo"
           error={errors.name?.message}
           {...register('name')}
@@ -82,7 +83,6 @@ export const ContactForm = () => {
         <Input
           label="E-mail"
           type="email"
-					name="email"
           placeholder="seu@email.com"
           error={errors.email?.message}
           {...register('email')}
@@ -98,7 +98,6 @@ export const ContactForm = () => {
               min-h-[120px] resize-vertical
               ${errors.message ? 'border-red-300' : 'border-gray-300'}
             `}
-						name="message"
             placeholder="Digite sua mensagem aqui..."
             {...register('message')}
           />
